@@ -1,0 +1,41 @@
+---
+name: Podman Build & Push
+description: Build and push Container Images with Podman
+author: Uco Mesdag <uco@mesd.ag>
+
+inputs:
+  registry:
+    description: "Registry host"
+    required: false 
+    default: "quay.io"
+  username:
+    description: Username
+    required: true
+  access_token:
+    description: Access Token
+    required: true
+  project_name:
+    description: "project id"
+    required: true
+  image_name:
+    description: The name of the image to build and push
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Login to the container registry
+      run: podman login -u='${{ inputs.username }}' -p='${{ inputs.access_token }}' ${{ inputs.registry }}
+      shell: bash
+
+    - name: Build the image 
+      run: podman build --build-arg BUILD_DATE=$(date +%Y-%m-%dT%H:%M:%S%Z) --tag ${{ inputs.image_name }} .
+      shell: bash
+
+    - name: Push the image to the container registry
+      run: podman push ${{ inputs.image_name }} ${{ inputs.registry }}/${{ inputs.project_name }}/${{ inputs.image_name }}
+      shell: bash
+
+branding:
+  icon: package
+  color: red
